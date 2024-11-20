@@ -63,3 +63,11 @@ class nnUNetTrainerDiceCELoss_noSmooth_250epochs(nnUNetTrainerDiceCELoss_noSmoot
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.num_epochs = 250
 
+
+class nnUNetTrainer_DiceCE_Weighted_250epochs(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.loss = DC_and_CE_loss({'weight_ce': 0.7, 'weight_dice': 0.3})
+        self.num_epochs = 250
+
