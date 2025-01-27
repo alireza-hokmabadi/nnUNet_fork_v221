@@ -64,12 +64,14 @@ class nnUNetTrainerDiceCELoss_noSmooth_250epochs(nnUNetTrainerDiceCELoss_noSmoot
         self.num_epochs = 250
 
 
-class nnUNetTrainer_DiceCE_Weighted_250epochs(nnUNetTrainer):
+class nnUNetTrainerDiceCELoss_noSmooth_100epochs(nnUNetTrainerDiceCELoss_noSmooth):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
                  device: torch.device = torch.device('cuda')):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
-        self.num_epochs = 250
+        self.num_epochs = 100
 
+
+class nnUNetTrainer_DiceCE_Weighted(nnUNetTrainer):
     def _build_loss(self):
         if self.label_manager.has_regions:
             loss = DC_and_BCE_loss({},
@@ -101,4 +103,18 @@ class nnUNetTrainer_DiceCE_Weighted_250epochs(nnUNetTrainer):
             # now wrap the loss
             loss = DeepSupervisionWrapper(loss, weights)
         return loss
+
+
+class nnUNetTrainer_DiceCE_Weighted_250epochs(nnUNetTrainer_DiceCE_Weighted):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 250
+
+
+class nnUNetTrainer_DiceCE_Weighted_100epochs(nnUNetTrainer_DiceCE_Weighted):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 100
 
