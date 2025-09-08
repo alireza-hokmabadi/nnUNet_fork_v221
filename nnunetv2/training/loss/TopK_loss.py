@@ -14,7 +14,7 @@
 
 import numpy as np
 import torch
-from nnunet.training.loss_functions.crossentropy import RobustCrossEntropyLoss
+from nnunetv2.training.loss.crossentropy import RobustCrossEntropyLoss
 
 
 class TopKLoss(RobustCrossEntropyLoss):

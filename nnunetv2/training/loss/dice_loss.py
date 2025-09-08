@@ -14,11 +14,10 @@
 
 
 import torch
-from nnunet.training.loss_functions.TopK_loss import TopKLoss
-from nnunet.training.loss_functions.crossentropy import RobustCrossEntropyLoss
-from nnunet.utilities.nd_softmax import softmax_helper
-from nnunet.utilities.tensor_utilities import sum_tensor
-from nnunet.training.loss_functions.focal_loss import FocalLoss
+from nnunetv2.training.loss.TopK_loss import TopKLoss
+from nnunetv2.training.loss.crossentropy import RobustCrossEntropyLoss
+from nnunetv2.utilities.helpers import softmax_helper_dim1
+from nnunetv2.training.loss.focal_loss import FocalLoss
 from torch import nn
 import numpy as np
 
@@ -70,7 +69,7 @@ class GDL(nn.Module):
         tp, fp, fn, _ = get_tp_fp_fn_tn(x, y_onehot, axes, loss_mask, self.square)
 
         # GDL weight computation, we use 1/V
-        volumes = sum_tensor(y_onehot, axes) + 1e-6 # add some eps to prevent div by zero
+        volumes = y_onehot.sum(dim=axes) + 1e-6  # add epsilon to avoid division by zero
 
         if self.square_volumes:
             volumes = volumes ** 2
@@ -148,10 +147,10 @@ def get_tp_fp_fn_tn(net_output, gt, axes=None, mask=None, square=False):
         tn = tn ** 2
 
     if len(axes) > 0:
-        tp = sum_tensor(tp, axes, keepdim=False)
-        fp = sum_tensor(fp, axes, keepdim=False)
-        fn = sum_tensor(fn, axes, keepdim=False)
-        tn = sum_tensor(tn, axes, keepdim=False)
+        tp = tp.sum(dim=axes, keepdim=False)
+        fp = fp.sum(dim=axes, keepdim=False)
+        fn = fn.sum(dim=axes, keepdim=False)
+        tn = tn.sum(dim=axes, keepdim=False)
 
     return tp, fp, fn, tn
 
@@ -325,10 +324,10 @@ class SoftDiceLossSquared(nn.Module):
         # values in the denominator get smoothed
         denominator = x ** 2 + y_onehot ** 2
 
-        # aggregation was previously done in get_tp_fp_fn, but needs to be done here now (needs to be done after
-        # squaring)
-        intersect = sum_tensor(intersect, axes, False) + self.smooth
-        denominator = sum_tensor(denominator, axes, False) + self.smooth
+        # aggregation was previously done in get_tp_fp_fn, but needs to be done here now (needs to be done after squaring)
+        intersect = intersect.sum(dim=axes, keepdim=False) + self.smooth
+        denominator = denominator.sum(dim=axes, keepdim=False) + self.smooth
+
 
         dc = 2 * intersect / denominator
 
@@ -367,9 +366,9 @@ class DC_and_CE_loss(nn.Module):
         self.ignore_label = ignore_label
 
         if not square_dice:
-            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
         else:
-            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
 
     def forward(self, net_output, target):
         """
@@ -435,7 +434,7 @@ class GDL_and_CE_loss(nn.Module):
         super(GDL_and_CE_loss, self).__init__()
         self.aggregate = aggregate
         self.ce = RobustCrossEntropyLoss(**ce_kwargs)
-        self.dc = GDL(softmax_helper, **gdl_dice_kwargs)
+        self.dc = GDL(softmax_helper_dim1, **gdl_dice_kwargs)
 
     def forward(self, net_output, target):
         dc_loss = self.dc(net_output, target)
@@ -453,9 +452,9 @@ class DC_and_topk_loss(nn.Module):
         self.aggregate = aggregate
         self.ce = TopKLoss(**ce_kwargs)
         if not square_dice:
-            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
         else:
-            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
 
     def forward(self, net_output, target):
         dc_loss = self.dc(net_output, target)
@@ -470,8 +469,8 @@ class DC_and_topk_loss(nn.Module):
 class DC_and_Focal_loss(nn.Module):
     def __init__(self, soft_dice_kwargs, focal_kwargs):
         super(DC_and_Focal_loss, self).__init__()
-        self.dc = SoftDiceLoss(apply_nonlin=softmax_helper, **soft_dice_kwargs)
-        self.focal = FocalLoss(apply_nonlin=softmax_helper, **focal_kwargs)
+        self.dc = SoftDiceLoss(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
+        self.focal = FocalLoss(apply_nonlin=softmax_helper_dim1, **focal_kwargs)
 
     def forward(self, net_output, target):
         dc_loss = self.dc(net_output, target)
@@ -488,9 +487,9 @@ class DC_topk_ce_loss(nn.Module):
         self.topk = TopKLoss(**topk_kwargs)
         self.ce = RobustCrossEntropyLoss(**ce_kwargs)
         if not square_dice:
-            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
         else:
-            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
 
     def forward(self, net_output, target):
         dc_loss = self.dc(net_output, target)
@@ -508,11 +507,11 @@ class DC_topk_focal_loss(nn.Module):
         super(DC_topk_focal_loss, self).__init__()
         self.aggregate = aggregate
         self.topk = TopKLoss(**topk_kwargs)
-        self.focal = FocalLoss(apply_nonlin=softmax_helper, **focal_kwargs)
+        self.focal = FocalLoss(apply_nonlin=softmax_helper_dim1, **focal_kwargs)
         if not square_dice:
-            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLoss(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
         else:
-            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper, **soft_dice_kwargs)
+            self.dc = SoftDiceLossSquared(apply_nonlin=softmax_helper_dim1, **soft_dice_kwargs)
 
     def forward(self, net_output, target):
         dc_loss = self.dc(net_output, target)
