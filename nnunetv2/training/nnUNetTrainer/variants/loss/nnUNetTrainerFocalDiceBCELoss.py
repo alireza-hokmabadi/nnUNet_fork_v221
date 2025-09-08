@@ -12,21 +12,14 @@ class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
         # Define the loss function
         loss = DiceFocalBCELoss()  # Adjust parameters if needed
 
-        # Apply Deep Supervision if enabled
-        if self.enable_deep_supervision:
-            deep_supervision_scales = self._get_deep_supervision_scales()
-            weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
+        deep_supervision_scales = self._get_deep_supervision_scales()
+        weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
+        weights[-1] = 0
 
-            # Avoid errors with Distributed Data Parallel (DDP)
-            if self.is_ddp and not self._do_i_compile():
-                weights[-1] = 1e-6  # Prevent unused parameter issues
-            else:
-                weights[-1] = 0  # Last output has no weight
+        # Normalize weights
+        weights = weights / weights.sum()
 
-            # Normalize weights
-            weights = weights / weights.sum()
-
-            # Wrap with Deep Supervision
-            loss = DeepSupervisionWrapper(loss, weights)
+        # Wrap with Deep Supervision
+        loss = DeepSupervisionWrapper(loss, weights)
 
         return loss
