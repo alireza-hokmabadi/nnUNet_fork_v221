@@ -1,5 +1,6 @@
 
 import numpy as np
+import torch
 from nnunetv2.training.loss.deep_supervision import DeepSupervisionWrapper
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 from nnunetv2.training.loss.dice_focal_loss import DiceFocalBCELoss  # Import the custom loss
@@ -21,5 +22,11 @@ class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
 
         # Wrap with Deep Supervision
         loss = DeepSupervisionWrapper(loss, weights)
-
         return loss
+
+
+class nnUNetTrainerFocalDiceBCELoss_4000epochs(nnUNetTrainerFocalDiceBCELoss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 4000
