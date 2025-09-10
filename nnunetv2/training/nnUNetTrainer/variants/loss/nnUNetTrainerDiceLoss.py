@@ -85,6 +85,13 @@ class nnUNetTrainerDiceCELoss_noSmooth_4000epochs(nnUNetTrainerDiceCELoss_noSmoo
         self.num_epochs = 4000
 
 
+class nnUNetTrainerDiceCELoss_noSmooth_8000epochs(nnUNetTrainerDiceCELoss_noSmooth):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 8000
+
+
 class nnUNetTrainerDiceCELoss_noSmooth_2000epochs_NoMirroring(nnUNetTrainerDiceCELoss_noSmooth):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
                  device: torch.device = torch.device('cuda')):
