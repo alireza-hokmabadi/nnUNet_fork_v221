@@ -11,7 +11,13 @@ class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
         self.print_to_log_file("Using Dice + BCE + Focal Loss for training.")
 
         # Define the loss function
-        loss = DiceFocalBCELoss()  # Adjust parameters if needed
+        # loss = DiceFocalBCELoss()  # Adjust parameters if needed
+
+        if self.label_manager.has_regions:
+            # slice network outputs to match target channels
+            loss = lambda inputs, targets: DiceFocalBCELoss()(inputs[:, :targets.shape[1], ...], targets)
+        else:
+            loss = DiceFocalBCELoss()
 
         deep_supervision_scales = self._get_deep_supervision_scales()
         weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
