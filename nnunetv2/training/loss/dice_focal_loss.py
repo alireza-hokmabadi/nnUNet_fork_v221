@@ -71,14 +71,67 @@ class DiceLoss(nn.Module):
 #         )
 
 
+# class DiceFocalBCELoss(nn.Module):
+#     def __init__(self, alpha=0.35, gamma=3, smooth=1e-6, use_regions=False, use_ignore_label=False):
+#         super(DiceFocalBCELoss, self).__init__()
+#         self.alpha = alpha
+#         self.gamma = gamma
+#         self.smooth = smooth
+#         self.use_regions = use_regions
+#         self.use_ignore_label = use_ignore_label
+#         self.bce = nn.BCEWithLogitsLoss(reduction='none' if use_ignore_label else 'mean')
+
+#     def forward(self, inputs, targets):
+#         """
+#         inputs: [B, C, ...] logits from network
+#         targets: one-hot or region-based [B, C, ...]
+#         """
+#         if self.use_ignore_label:
+#             mask = (1 - targets[:, -1:]).bool()
+#             targets = targets[:, :-1]  # drop ignore channel
+#         else:
+#             mask = None
+
+#         # ---- Dice Loss ----
+#         probs = torch.sigmoid(inputs)
+#         intersection = (probs * targets).sum(dim=list(range(2, targets.ndim)))
+#         dice_coeff = (2 * intersection + self.smooth) / (
+#             probs.sum(dim=list(range(2, targets.ndim))) + targets.sum(dim=list(range(2, targets.ndim))) + self.smooth
+#         )
+#         dice_loss = 1 - dice_coeff.mean()
+
+#         # ---- BCE Loss ----
+#         if mask is not None:
+#             bce_raw = self.bce(inputs, targets)
+#             bce_loss = (bce_raw * mask).sum() / torch.clamp(mask.sum(), min=1e-8)
+#         else:
+#             bce_loss = self.bce(inputs, targets)
+
+#         # ---- Focal Loss ----
+#         bce_each = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
+#         pt = torch.exp(-bce_each)
+#         focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_each
+#         if mask is not None:
+#             focal_loss = (focal_loss * mask).sum() / torch.clamp(mask.sum(), min=1e-8)
+#         else:
+#             focal_loss = focal_loss.mean()
+
+#         return 0.5 * dice_loss + 0.25 * bce_loss + 0.25 * focal_loss
+
+
 class DiceFocalBCELoss(nn.Module):
-    def __init__(self, alpha=0.35, gamma=3, smooth=1e-6, use_regions=False, use_ignore_label=False):
+    def __init__(self, alpha=0.35, gamma=3, smooth=1e-6,
+                 use_regions=False, use_ignore_label=False,
+                 dice_weight=0.5, bce_weight=0.25, focal_weight=0.25):
         super(DiceFocalBCELoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
         self.smooth = smooth
         self.use_regions = use_regions
         self.use_ignore_label = use_ignore_label
+        self.dice_weight = dice_weight
+        self.bce_weight = bce_weight
+        self.focal_weight = focal_weight
         self.bce = nn.BCEWithLogitsLoss(reduction='none' if use_ignore_label else 'mean')
 
     def forward(self, inputs, targets):
@@ -116,4 +169,8 @@ class DiceFocalBCELoss(nn.Module):
         else:
             focal_loss = focal_loss.mean()
 
-        return 0.5 * dice_loss + 0.25 * bce_loss + 0.25 * focal_loss
+        return (
+            self.dice_weight * dice_loss +
+            self.bce_weight * bce_loss +
+            self.focal_weight * focal_loss
+        )

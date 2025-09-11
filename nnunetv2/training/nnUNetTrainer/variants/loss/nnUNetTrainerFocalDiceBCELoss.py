@@ -10,34 +10,60 @@ from nnunetv2.training.loss.dice_focal_loss import DiceFocalBCELoss  # Import th
 #     def _build_loss(self):
 #         self.print_to_log_file("Using Dice + BCE + Focal Loss for training.")
 
-#         # Define the loss function
-#         loss = DiceFocalBCELoss()  # Adjust parameters if needed
+#         if self.label_manager.has_regions:
+#             loss = DiceFocalBCELoss(
+#                 use_regions=True,
+#                 use_ignore_label=self.label_manager.ignore_label is not None
+#             )
+#         else:
+#             loss = DiceFocalBCELoss(
+#                 use_regions=False,
+#                 use_ignore_label=self.label_manager.ignore_label is not None
+#             )
 
 #         deep_supervision_scales = self._get_deep_supervision_scales()
 #         weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
 #         weights[-1] = 0
-
-#         # Normalize weights
 #         weights = weights / weights.sum()
 
-#         # Wrap with Deep Supervision
 #         loss = DeepSupervisionWrapper(loss, weights)
 #         return loss
 
 
+
 class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda'),
+                 dice_weight: float = 0.5,
+                 bce_weight: float = 0.25,
+                 focal_weight: float = 0.25):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.dice_weight = dice_weight
+        self.bce_weight = bce_weight
+        self.focal_weight = focal_weight
+
     def _build_loss(self):
-        self.print_to_log_file("Using Dice + BCE + Focal Loss for training.")
+        self.print_to_log_file(
+            f"Using Dice + BCE + Focal Loss. "
+            f"Weights: Dice={self.dice_weight}, BCE={self.bce_weight}, Focal={self.focal_weight}"
+        )
 
         if self.label_manager.has_regions:
             loss = DiceFocalBCELoss(
                 use_regions=True,
-                use_ignore_label=self.label_manager.ignore_label is not None
+                use_ignore_label=self.label_manager.ignore_label is not None,
+                dice_weight=self.dice_weight,
+                bce_weight=self.bce_weight,
+                focal_weight=self.focal_weight
             )
         else:
             loss = DiceFocalBCELoss(
                 use_regions=False,
-                use_ignore_label=self.label_manager.ignore_label is not None
+                use_ignore_label=self.label_manager.ignore_label is not None,
+                dice_weight=self.dice_weight,
+                bce_weight=self.bce_weight,
+                focal_weight=self.focal_weight
             )
 
         deep_supervision_scales = self._get_deep_supervision_scales()
@@ -45,8 +71,7 @@ class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
         weights[-1] = 0
         weights = weights / weights.sum()
 
-        loss = DeepSupervisionWrapper(loss, weights)
-        return loss
+        return DeepSupervisionWrapper(loss, weights)
 
 
 class nnUNetTrainerFocalDiceBCELoss_4000epochs(nnUNetTrainerFocalDiceBCELoss):
@@ -54,3 +79,5 @@ class nnUNetTrainerFocalDiceBCELoss_4000epochs(nnUNetTrainerFocalDiceBCELoss):
                  device: torch.device = torch.device('cuda')):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.num_epochs = 4000
+
+
