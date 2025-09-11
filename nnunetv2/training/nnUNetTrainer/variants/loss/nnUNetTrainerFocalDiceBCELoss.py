@@ -6,27 +6,45 @@ from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 from nnunetv2.training.loss.dice_focal_loss import DiceFocalBCELoss  # Import the custom loss
 
 
+# class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
+#     def _build_loss(self):
+#         self.print_to_log_file("Using Dice + BCE + Focal Loss for training.")
+
+#         # Define the loss function
+#         loss = DiceFocalBCELoss()  # Adjust parameters if needed
+
+#         deep_supervision_scales = self._get_deep_supervision_scales()
+#         weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
+#         weights[-1] = 0
+
+#         # Normalize weights
+#         weights = weights / weights.sum()
+
+#         # Wrap with Deep Supervision
+#         loss = DeepSupervisionWrapper(loss, weights)
+#         return loss
+
+
 class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
     def _build_loss(self):
         self.print_to_log_file("Using Dice + BCE + Focal Loss for training.")
 
-        # Define the loss function
-        # loss = DiceFocalBCELoss()  # Adjust parameters if needed
-
         if self.label_manager.has_regions:
-            # slice network outputs to match target channels
-            loss = lambda inputs, targets: DiceFocalBCELoss()(inputs[:, :targets.shape[1], ...], targets)
+            loss = DiceFocalBCELoss(
+                use_regions=True,
+                use_ignore_label=self.label_manager.ignore_label is not None
+            )
         else:
-            loss = DiceFocalBCELoss()
+            loss = DiceFocalBCELoss(
+                use_regions=False,
+                use_ignore_label=self.label_manager.ignore_label is not None
+            )
 
         deep_supervision_scales = self._get_deep_supervision_scales()
         weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
         weights[-1] = 0
-
-        # Normalize weights
         weights = weights / weights.sum()
 
-        # Wrap with Deep Supervision
         loss = DeepSupervisionWrapper(loss, weights)
         return loss
 
