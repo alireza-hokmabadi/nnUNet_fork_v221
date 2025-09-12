@@ -81,6 +81,20 @@ class nnUNetTrainerFocalDiceBCELoss_4000epochs(nnUNetTrainerFocalDiceBCELoss):
         self.num_epochs = 4000
 
 
+class nnUNetTrainerFocalDiceBCELoss_8000epochs(nnUNetTrainerFocalDiceBCELoss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 8000
+
+
+class nnUNetTrainerFocalDiceBCELoss_10000epochs(nnUNetTrainerFocalDiceBCELoss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 10000
+
+
 class nnUNetTrainerFocalDiceBCELoss_4000epochs_CustomWeights1(nnUNetTrainerFocalDiceBCELoss):
     def __init__(self, plans, configuration, fold, dataset_json,
                  unpack_dataset=True, device=torch.device('cuda')):
