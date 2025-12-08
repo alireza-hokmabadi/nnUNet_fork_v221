@@ -49,6 +49,27 @@ class nnUNetTrainerFocalDiceBCELoss(nnUNetTrainer):
         return DeepSupervisionWrapper(loss, weights)
 
 
+class nnUNetTrainerFocalDiceBCELoss_250epochs(nnUNetTrainerFocalDiceBCELoss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 250
+
+
+class nnUNetTrainerFocalDiceBCELoss_500epochs(nnUNetTrainerFocalDiceBCELoss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 500
+
+
+class nnUNetTrainerFocalDiceBCELoss_1000epochs(nnUNetTrainerFocalDiceBCELoss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 1000
+
+
 class nnUNetTrainerFocalDiceBCELoss_4000epochs(nnUNetTrainerFocalDiceBCELoss):
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
                  device: torch.device = torch.device('cuda')):
