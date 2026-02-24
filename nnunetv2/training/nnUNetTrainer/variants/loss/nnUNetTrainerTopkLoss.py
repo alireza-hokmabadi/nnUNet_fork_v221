@@ -3,6 +3,7 @@ from nnunetv2.training.loss.deep_supervision import DeepSupervisionWrapper
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 import numpy as np
 from nnunetv2.training.loss.robust_ce_loss import TopKLoss
+import torch
 
 
 class nnUNetTrainerTopk10Loss(nnUNetTrainer):
@@ -67,3 +68,32 @@ class nnUNetTrainerDiceTopK10Loss(nnUNetTrainer):
         # now wrap the loss
         loss = DeepSupervisionWrapper(loss, weights)
         return loss
+
+
+class nnUNetTrainerDiceTopK10Loss_500epochs(nnUNetTrainerDiceTopK10Loss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 500
+
+
+class nnUNetTrainerDiceTopK10Loss_250epochs(nnUNetTrainerDiceTopK10Loss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 250
+
+
+class nnUNetTrainerDiceTopK10Loss_100epochs(nnUNetTrainerDiceTopK10Loss):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+        self.num_epochs = 100
+
+
+class nnUNetTrainerDiceTopK10Loss_250epochs_CustomWeights1(nnUNetTrainerDiceTopK10Loss):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 unpack_dataset=True, device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device,
+                         weight_ce=0.7, weight_dice=1.3)
+        self.num_epochs = 250
