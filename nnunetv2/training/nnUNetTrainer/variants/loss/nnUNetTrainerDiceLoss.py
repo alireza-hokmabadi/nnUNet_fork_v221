@@ -121,11 +121,13 @@ class nnUNetTrainerFlexibleLoss(nnUNetTrainer):
     class_weights = None
     weight_ce = 1.0
     weight_dice = 1.0
-    num_epochs = 1000   # default
+    num_epochs = 1000  # default
+    oversample_foreground_percent = 0.33  # default
 
     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True, device: torch.device = torch.device('cuda')):
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
         self.num_epochs = self.__class__.num_epochs
+        self.oversample_foreground_percent = self.__class__.oversample_foreground_percent
 
     def _build_loss(self):
 
@@ -183,42 +185,49 @@ class nnUNetTrainerFlexibleLoss_ep100(nnUNetTrainerFlexibleLoss):
     weight_ce = 1.0
     weight_dice = 1.0
     num_epochs = 100
+    oversample_foreground_percent = 0.33
 
 class nnUNetTrainerFlexibleLoss_ep250(nnUNetTrainerFlexibleLoss):
     class_weights = None
     weight_ce = 1.0
     weight_dice = 1.0
     num_epochs = 250
+    oversample_foreground_percent = 0.33
 
 class nnUNetTrainerFlexibleLoss_ep500(nnUNetTrainerFlexibleLoss):
     class_weights = None
     weight_ce = 1.0
     weight_dice = 1.0
     num_epochs = 500
+    oversample_foreground_percent = 0.33
 
 class nnUNetTrainerFlexibleLoss_ep100_ce2(nnUNetTrainerFlexibleLoss):
     class_weights = None
     weight_ce = 2.0
     weight_dice = 1.0
     num_epochs = 100
+    oversample_foreground_percent = 0.33
 
 class nnUNetTrainerFlexibleLoss_ep250_ce2(nnUNetTrainerFlexibleLoss):
     class_weights = None
     weight_ce = 2.0
     weight_dice = 1.0
     num_epochs = 250
+    oversample_foreground_percent = 0.33
 
 class nnUNetTrainerFlexibleLoss_ep500_ce2(nnUNetTrainerFlexibleLoss):
     class_weights = None
     weight_ce = 2.0
     weight_dice = 1.0
     num_epochs = 500
+    oversample_foreground_percent = 0.33
 
 class nnUNetTrainerFlexibleLoss_ep1000_ce2(nnUNetTrainerFlexibleLoss):
     class_weights = None
     weight_ce = 2.0
     weight_dice = 1.0
     num_epochs = 1000
+    oversample_foreground_percent = 0.33
 
 
 class nnUNetTrainerFlexibleLoss_ep250_ce2__LV_epi15(nnUNetTrainerFlexibleLoss):
@@ -226,6 +235,15 @@ class nnUNetTrainerFlexibleLoss_ep250_ce2__LV_epi15(nnUNetTrainerFlexibleLoss):
     weight_ce = 2.0
     weight_dice = 1.0
     num_epochs = 250
+    oversample_foreground_percent = 0.33
+
+
+class nnUNetTrainerFlexibleLoss_ep250_strongSampling(nnUNetTrainerFlexibleLoss):
+    class_weights = None
+    weight_ce = 1.0
+    weight_dice = 1.0
+    num_epochs = 250
+    oversample_foreground_percent = 0.66
 
 #%% ---------------------------------------------------------------------------
 
