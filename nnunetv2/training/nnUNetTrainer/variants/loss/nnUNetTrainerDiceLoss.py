@@ -67,29 +67,90 @@ class nnUNetTrainerDiceCELoss_noSmooth(nnUNetTrainer):
 
 
 
+# class nnUNetTrainerDiceCELoss_noSmooth_weighted(nnUNetTrainer):
+#     def _build_loss(self):
+
+#         if self.label_manager.has_regions:
+#             loss = DC_and_BCE_loss(
+#                 {},
+#                 {
+#                     'batch_dice': self.configuration_manager.batch_dice,
+#                     'do_bg': True,
+#                     'smooth': 0,
+#                     'ddp': self.is_ddp
+#                 },
+#                 use_ignore_label=self.label_manager.ignore_label is not None,
+#                 dice_class=MemoryEfficientSoftDiceLoss
+#             )
+
+#         else:
+#             # ---- ADD THIS ----
+#             class_weights = torch.tensor(
+#                 [1.0, 1.0, 1.5],  # bg, endo, epi
+#                 device=self.device
+#             )
+
+#             loss = DC_and_CE_loss(
+#                 {
+#                     'batch_dice': self.configuration_manager.batch_dice,
+#                     'smooth': 0,
+#                     'do_bg': False,
+#                     'ddp': self.is_ddp
+#                 },
+#                 {'weight': class_weights},  # <-- pass to CE
+#                 weight_ce=1,
+#                 weight_dice=1,
+#                 ignore_label=self.label_manager.ignore_label,
+#                 dice_class=MemoryEfficientSoftDiceLoss
+#             )
+
+#         deep_supervision_scales = self._get_deep_supervision_scales()
+#         weights = np.array([1 / (2 ** i) for i in range(len(deep_supervision_scales))])
+#         weights[-1] = 0
+#         weights = weights / weights.sum()
+
+#         loss = DeepSupervisionWrapper(loss, weights)
+#         return loss
+
+
+# class nnUNetTrainerDiceCELoss_noSmooth_weighted_250epochs(nnUNetTrainerDiceCELoss_noSmooth_weighted):
+#     def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
+#                  device: torch.device = torch.device('cuda')):
+#         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+#         self.num_epochs = 250
+
+
 class nnUNetTrainerDiceCELoss_noSmooth_weighted(nnUNetTrainer):
+
     def _build_loss(self):
+
+        # use self.class_weights if defined
+        if hasattr(self, "class_weights") and self.class_weights is not None:
+            class_weights = torch.tensor(
+                self.class_weights,
+                dtype=torch.float32,
+                device=self.device
+            )
+            ce_kwargs = {'weight': class_weights}
+        else:
+            ce_kwargs = {}
 
         if self.label_manager.has_regions:
             loss = DC_and_BCE_loss(
-                {},
+                ce_kwargs,
                 {
                     'batch_dice': self.configuration_manager.batch_dice,
                     'do_bg': True,
                     'smooth': 0,
                     'ddp': self.is_ddp
                 },
+                weight_ce=1,
+                weight_dice=1,
                 use_ignore_label=self.label_manager.ignore_label is not None,
                 dice_class=MemoryEfficientSoftDiceLoss
             )
 
         else:
-            # ---- ADD THIS ----
-            class_weights = torch.tensor(
-                [1.0, 1.0, 1.5],  # bg, endo, epi
-                device=self.device
-            )
-
             loss = DC_and_CE_loss(
                 {
                     'batch_dice': self.configuration_manager.batch_dice,
@@ -97,7 +158,7 @@ class nnUNetTrainerDiceCELoss_noSmooth_weighted(nnUNetTrainer):
                     'do_bg': False,
                     'ddp': self.is_ddp
                 },
-                {'weight': class_weights},  # <-- pass to CE
+                ce_kwargs,
                 weight_ce=1,
                 weight_dice=1,
                 ignore_label=self.label_manager.ignore_label,
@@ -110,14 +171,17 @@ class nnUNetTrainerDiceCELoss_noSmooth_weighted(nnUNetTrainer):
         weights = weights / weights.sum()
 
         loss = DeepSupervisionWrapper(loss, weights)
+
         return loss
 
 
 class nnUNetTrainerDiceCELoss_noSmooth_weighted_250epochs(nnUNetTrainerDiceCELoss_noSmooth_weighted):
-    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True,
-                 device: torch.device = torch.device('cuda')):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict, unpack_dataset: bool = True, device: torch.device = torch.device('cuda')):
+
         super().__init__(plans, configuration, fold, dataset_json, unpack_dataset, device)
+
         self.num_epochs = 250
+        self.class_weights = [1.0, 1.0, 1.5]
 
 
 class nnUNetTrainer_DiceCE_Weighted(nnUNetTrainer):
