@@ -231,7 +231,7 @@ class nnUNetTrainerFlexibleLoss_ep1000_ce2(nnUNetTrainerFlexibleLoss):
 
 
 class nnUNetTrainerFlexibleLoss_ep250_ce2__class_weights(nnUNetTrainerFlexibleLoss):
-    class_weights = [1.0, 2.0, 1., 2.5]  # {0: background, 1: LV_Endo, 2: LV_Ep}
+    class_weights = [1.0, 2.0, 1.0, 2.5]  # {0: background, 1: LV_Endo, 2: LV_Ep}
     weight_ce = 2.0
     weight_dice = 1.0
     num_epochs = 250
