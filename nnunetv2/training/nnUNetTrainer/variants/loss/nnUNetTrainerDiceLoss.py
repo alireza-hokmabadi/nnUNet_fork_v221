@@ -234,7 +234,7 @@ class nnUNetTrainerFlexibleLoss_ep100_strongSampling(nnUNetTrainerFlexibleLoss):
     weight_ce = 1.0
     weight_dice = 1.0
     num_epochs = 100
-    oversample_foreground_percent = 0.66
+    oversample_foreground_percent = 0.5
 
 
 class nnUNetTrainerFlexibleLoss_ep250_strongSampling(nnUNetTrainerFlexibleLoss):
@@ -242,7 +242,7 @@ class nnUNetTrainerFlexibleLoss_ep250_strongSampling(nnUNetTrainerFlexibleLoss):
     weight_ce = 1.0
     weight_dice = 1.0
     num_epochs = 250
-    oversample_foreground_percent = 0.66
+    oversample_foreground_percent = 0.5
 
 
 class nnUNetTrainerFlexibleLoss_ep250_ce2__class_weights(nnUNetTrainerFlexibleLoss):
