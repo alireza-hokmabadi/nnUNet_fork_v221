@@ -244,6 +244,14 @@ class nnUNetTrainerFlexibleLoss_ep250_strongSampling(nnUNetTrainerFlexibleLoss):
     num_epochs = 250
     oversample_foreground_percent = 0.5
 
+#%% Specific loss versions ----------------------------------------------------
+class nnUNetTrainerFlexibleLoss_ep250_ce07_dice03(nnUNetTrainerFlexibleLoss):
+    class_weights = None
+    weight_ce = 0.7
+    weight_dice = 0.3
+    num_epochs = 250
+    oversample_foreground_percent = 0.33
+
 
 class nnUNetTrainerFlexibleLoss_ep250_ce2__class_weights(nnUNetTrainerFlexibleLoss):
     class_weights = [1.0, 2.0, 1.0, 2.5]  # {0: background, 1: LV_Endo, 2: LV_Ep}
