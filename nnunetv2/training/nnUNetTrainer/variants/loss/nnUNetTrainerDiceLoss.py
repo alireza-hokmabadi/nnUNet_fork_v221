@@ -262,7 +262,15 @@ class nnUNetTrainerFlexibleLoss_ep250_ce03_dice07(nnUNetTrainerFlexibleLoss):
 
 
 class nnUNetTrainerFlexibleLoss_ep250_ce07_dice03__class_weights(nnUNetTrainerFlexibleLoss):
-    class_weights = [.1, 2, 3, 1, 6]
+    class_weights = [.1, 2, 3, 1, 6]  # {'Background': 0, 'LV_Epi': 1, 'LV_Pap1': 2, 'LV_Endo': 3, 'LV_Pap2': 4}
+    weight_ce = 0.7
+    weight_dice = 0.3
+    num_epochs = 250
+    oversample_foreground_percent = 0.33
+
+
+class nnUNetTrainerFlexibleLoss_ep250_ce07_dice03__class_weights_v2(nnUNetTrainerFlexibleLoss):
+    class_weights = [.1, 2, 4, 1, 8]  # {'Background': 0, 'LV_Epi': 1, 'LV_Pap1': 2, 'LV_Endo': 3, 'LV_Pap2': 4}
     weight_ce = 0.7
     weight_dice = 0.3
     num_epochs = 250
