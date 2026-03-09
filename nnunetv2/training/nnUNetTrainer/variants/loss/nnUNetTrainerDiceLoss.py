@@ -262,7 +262,7 @@ class nnUNetTrainerFlexibleLoss_ep250_ce03_dice07(nnUNetTrainerFlexibleLoss):
 
 
 class nnUNetTrainerFlexibleLoss_ep250_ce07_dice03__class_weights(nnUNetTrainerFlexibleLoss):
-    class_weights = [1.0, 1.0, 1.0, 2.5]
+    class_weights = [.1, 2, 3, 1, 6]
     weight_ce = 0.7
     weight_dice = 0.3
     num_epochs = 250
